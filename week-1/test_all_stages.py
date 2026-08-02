@@ -20,9 +20,12 @@ def free_port() -> int:
 
 
 def start_server(module: str, port: int) -> subprocess.Popen:
+    venv_uvicorn = WORKDIR / ".venv" / "bin" / "uvicorn"
+    if not venv_uvicorn.exists():
+        venv_uvicorn = WORKDIR.parent / ".venv" / "bin" / "uvicorn"
     return subprocess.Popen(
         [
-            str(WORKDIR / ".venv/bin/uvicorn"),
+            str(venv_uvicorn),
             f"{module}:app",
             "--host",
             "127.0.0.1",
