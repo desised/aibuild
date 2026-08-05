@@ -9,7 +9,7 @@ import json
 import httpx
 import streamlit as st
 
-WORKDIR_CMD = "ai-engineering-bootcamp-v2/week-1"  # path from repo root
+WORKDIR_CMD = "/week-1"  # path from repo root
 
 STAGES = [
     {
@@ -107,7 +107,7 @@ st.set_page_config(page_title="Week 1 /ask Demo", layout="wide")
 st.title("Week 1 — `/ask` Demo Runner")
 st.caption("One page, five sections. Copy the commands below, start the matching server, then hit **Run test**.")
 
-base_url = st.sidebar.text_input("API base URL", "http://127.0.0.1:8000")
+base_url = st.sidebar.text_input("API base URL", "https://aibuild.onrender.com")
 
 st.sidebar.markdown("### Run this page")
 st.sidebar.code(
@@ -128,7 +128,7 @@ for tab, stage in zip(tabs, STAGES):
             default_q,
             key=f"q_{stage['num']}",
             placeholder="Type a question to send to /ask…",
-        )
+        ) or default_q
 
         force_bad = stage.get("dummy_force_bad", False)
         model = stage.get("dummy_model")
