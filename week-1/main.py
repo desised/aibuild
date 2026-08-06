@@ -5,6 +5,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
 from openai import OpenAI
 from pydantic import BaseModel, Field, ValidationError
 
@@ -157,3 +158,49 @@ def ask(body: AskRequest) -> AskResponse:
         status_code=502,
         detail=f"Model response failed schema validation after retry: {last_error}",
     )
+
+
+@app.get("/", response_class=HTMLResponse)
+def home():
+    return """<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Build – Ask</title>
+<style>
+  body{font-family:system-ui,sans-serif;max-width:640px;margin:40px auto;padding:0 20px;background:#111;color:#eee}
+  h1{color:#7c3aed}
+  textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #333;background:#222;color:#eee;font-size:16px;resize:vertical}
+  button{margin-top:10px;padding:10px 24px;background:#7c3aed;color:#fff;border:none;border-radius:8px;font-size:16px;cursor:pointer}
+  button:hover{background:#6d28d9}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  #result{margin-top:20px;padding:16px;background:#1e1e2e;border-radius:8px;white-space:pre-wrap;display:none}
+  .meta{color:#888;font-size:14px;margin-top:8px}
+</style></head><body>
+<h1>AI Build – Week 1</h1>
+<label for="q"><b>Ask a question:</b></label>
+<textarea id="q" rows="3" placeholder="e.g. What is Retrieval-Augmented Generation?"></textarea>
+<br>
+<label for="model">Model: </label>
+<select id="model"><option value="gpt-4o">gpt-4o</option><option value="gpt-4o-mini">gpt-4o-mini</option><option value="o3-mini">o3-mini</option></select>
+<br>
+<button id="btn" onclick="ask()">Ask</button>
+<div id="result"></div>
+<script>
+async function ask(){
+  const q=document.getElementById('q').value.trim();
+  if(!q)return;
+  const btn=document.getElementById('btn');
+  const res=document.getElementById('result');
+  btn.disabled=true;btn.textContent='Thinking...';res.style.display='none';
+  try{
+    const r=await fetch('/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,model:document.getElementById('model').value})});
+    const d=await r.json();
+    if(!r.ok){res.textContent='Error: '+(d.detail||JSON.stringify(d));res.style.display='block';return}
+    res.innerHTML='<b>Answer:</b>\\n'+d.answer.answer
+      +'\\n\\n<span class="meta">Confidence: '+d.answer.confidence
+      +' | Tokens: '+d.tokens_used+' | Cost: $'+d.cost_usd
+      +' | Latency: '+d.latency_ms+'ms | Model: '+d.model+'</span>';
+    res.style.display='block';
+  }catch(e){res.textContent='Error: '+e;res.style.display='block'}
+  finally{btn.disabled=false;btn.textContent='Ask'}
+}
+</script></body></html>"""
