@@ -187,7 +187,7 @@ def home():
 <script>
 async function ask(){
   const q=document.getElementById('q').value.trim();
-  if(!q)return;
+  if(!q){document.getElementById('result').textContent='Please enter a question.';document.getElementById('result').style.display='block';return;}
   const btn=document.getElementById('btn');
   const res=document.getElementById('result');
   btn.disabled=true;btn.textContent='Thinking...';res.style.display='none';
